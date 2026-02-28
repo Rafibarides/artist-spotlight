@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist Spotlight — Live Music Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --yellow: #FFF408;
+      --pink: #FF53D8;
+      --cyan: #1DEFFF;
+      --purple: #7042E0;
+      --black: #000000;
+      --white: #FAFAFA;
+      --dark: #0D0D0D;
+    }
+
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--black);
+      color: var(--white);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #app {
+      overflow-x: hidden;
+    }
+
+    .svg-filters {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
+    /* ===== DRIP DIVIDERS ===== */
+    .drip-divider {
+      width: 100%;
+      display: block;
+      margin-top: -1px;
+      margin-bottom: -1px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      background: var(--pink);
+      padding: 56px 20px 44px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-blob {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: #FF8C00;
+      opacity: 0.13;
+      filter: blur(60px);
+      pointer-events: none;
+      bottom: 10%;
+      right: 12%;
+      z-index: 0;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--black);
+      opacity: 0.65;
+      margin-bottom: 8px;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.4rem, 14vw, 7rem);
+      line-height: 0.88;
+      color: var(--black);
+      text-transform: uppercase;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-subtitle {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--black);
+      margin-top: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+
+    /* ===== INFO BAR ===== */
+    .info-bar {
+      background: var(--yellow);
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .info-bar-content {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .info-date {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.55rem;
+      color: var(--black);
+      letter-spacing: 0.04em;
+    }
+
+    .info-venue-text {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--black);
+      opacity: 0.7;
+    }
+
+    .info-schedule {
+      font-size: 0.75rem;
+      color: var(--black);
+      opacity: 0.55;
+      margin-top: 1px;
+    }
+
+    /* ===== LINEUP ===== */
+    .lineup {
+      background: var(--black);
+      padding: 44px 20px 28px;
+    }
+
+    .lineup-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.25rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .lineup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px 20px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* ===== ARTIST CARD ===== */
+    .artist-card {
+      text-align: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .artist-photo-wrap {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 12px;
+    }
+
+    .artist-ring {
+      position: absolute;
+      inset: -7px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      opacity: 0.35;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .artist-ring-pulse {
+      position: absolute;
+      inset: -7px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .artist-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid var(--cyan);
+      display: block;
+      transition: box-shadow 0.3s ease, transform 0.4s ease;
+    }
+
+    .artist-card:hover .artist-photo,
+    .artist-card.active .artist-photo {
+      box-shadow: 0 0 28px rgba(29, 239, 255, 0.35);
+      transform: scale(1.04);
+    }
+
+    .artist-card:hover .artist-ring {
+      opacity: 0.7;
+      transform: scale(1.05);
+    }
+
+    .artist-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.35rem;
+      letter-spacing: 0.05em;
+      color: var(--white);
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
+    .name-first {
+      opacity: 0.45;
+    }
+
+    /* ===== PARTICLE EMITTER ===== */
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .tap-hint {
+      display: block;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-top: 4px;
+      transition: opacity 0.3s;
+    }
+
+    .artist-card.active .tap-hint { opacity: 0; }
+
+    /* ===== ARTIST DETAILS (hidden until clicked) ===== */
+    .artist-details {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1),
+                  opacity 0.4s ease,
+                  padding 0.4s ease;
+      padding: 0 4px;
+    }
+
+    .artist-card.active .artist-details {
+      max-height: 500px;
+      opacity: 1;
+      padding: 12px 4px 0;
+    }
+
+    .artist-bio {
+      font-size: 0.7rem;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 10px;
+    }
+
+    .artist-links {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .artist-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: 50px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: transform 0.2s;
+    }
+
+    .artist-link:active { transform: scale(0.94); }
+
+    .artist-link svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    .link-spotify { background: var(--cyan); color: var(--black); }
+    .link-insta { background: var(--white); color: var(--black); }
+
+    @media (min-width: 600px) {
+      .lineup-grid {
+        gap: 48px 80px;
+        max-width: 700px;
+      }
+      .artist-photo-wrap {
+        width: 240px;
+        height: 240px;
+      }
+      .artist-name {
+        font-size: 2rem;
+      }
+    }
+
+    /* ===== TICKET SECTION ===== */
+    .ticket-section {
+      background: var(--black);
+      padding: 20px 20px 40px;
+    }
+
+    .ticket-section-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.25rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .ticket-perspective {
+      perspective: 900px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .ticket {
+      background: var(--white);
+      border-radius: 14px;
+      display: flex;
+      width: 100%;
+      max-width: 380px;
+      overflow: hidden;
+      box-shadow: 0 12px 50px rgba(0,0,0,0.5);
+      transform-style: preserve-3d;
+      transition: box-shadow 0.3s ease;
+      will-change: transform;
+    }
+
+    @media (hover: none) {
+      .ticket {
+        animation: ticketFloat 5s ease-in-out infinite;
+      }
+    }
+
+    @keyframes ticketFloat {
+      0%, 100% { transform: rotate(-0.8deg) translateY(0); }
+      50% { transform: rotate(0.8deg) translateY(-4px); }
+    }
+
+    .ticket-main {
+      flex: 1;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ticket-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ticket-star {
+      font-size: 0.75rem;
+      color: var(--pink);
+    }
+
+    .ticket-type {
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--black);
+      opacity: 0.5;
+    }
+
+    .ticket-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      color: var(--black);
+      line-height: 1;
+      letter-spacing: 0.02em;
+    }
+
+    .ticket-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 14px;
+    }
+
+    .ticket-field {}
+
+    .ticket-label {
+      display: block;
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.35);
+    }
+
+    .ticket-value {
+      display: block;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.95rem;
+      color: var(--black);
+      line-height: 1.2;
+    }
+
+    .ticket-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      background: var(--pink);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      margin-top: 4px;
+      transition: background 0.2s, transform 0.2s;
+      align-self: flex-start;
+    }
+
+    .ticket-cta:hover { background: var(--purple); }
+    .ticket-cta:active { transform: scale(0.96); }
+
+    .ticket-perf {
+      width: 0px;
+      align-self: stretch;
+      border-left: 2px dashed #ddd;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .ticket-perf::before,
+    .ticket-perf::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: var(--black);
+      border-radius: 50%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .ticket-perf::before { top: -11px; }
+    .ticket-perf::after { bottom: -11px; }
+
+    .ticket-stub {
+      width: 95px;
+      flex-shrink: 0;
+      padding: 18px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.03);
+    }
+
+    .ticket-price-big {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      color: var(--black);
+      line-height: 1;
+    }
+
+    .ticket-price-label {
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.4);
+    }
+
+    .ticket-barcode {
+      display: flex;
+      gap: 1px;
+      align-items: flex-end;
+      height: 28px;
+      margin: 6px 0;
+    }
+
+    .ticket-barcode span {
+      background: var(--black);
+      border-radius: 0.5px;
+    }
+
+    .ticket-price-door {
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.35);
+      text-align: center;
+    }
+
+    .ticket-notes {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .note-pill {
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 4px 12px;
+      border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* ===== VENUE ===== */
+    .venue-section {
+      background: #0a0515;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    .venue-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.7rem;
+      color: var(--yellow);
+    }
+
+    .venue-address {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    .venue-address a {
+      color: rgba(255,255,255,0.4);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .venue-map {
+      margin: 18px auto 0;
+      max-width: 380px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.08);
+      aspect-ratio: 16 / 9;
+    }
+
+    .venue-map iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
+      filter: saturate(0.3) brightness(0.55) contrast(1.1);
+      transition: filter 0.4s ease;
+    }
+
+    .venue-map:hover iframe {
+      filter: saturate(0.6) brightness(0.7) contrast(1.05);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      background: var(--black);
+      padding: 22px 20px 44px;
+      text-align: center;
+    }
+
+    .footer-logo {
+      width: 52px;
+      height: auto;
+      opacity: 0.4;
+      margin-bottom: 10px;
+    }
+
+    .footer-copy {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.15);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ===== EXPORTS ===== */
+    .exports-section {
+      display: none;
+      background: var(--black);
+      padding: 32px 20px 40px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .exports-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.25rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--purple);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .export-formats {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    .export-card {
+      flex: 1;
+      min-width: 100px;
+      max-width: 140px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: default;
+    }
+
+    .export-preview {
+      margin: 0 auto 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .export-preview-tall {
+      width: 32px;
+      height: 56px;
+      background: linear-gradient(to bottom, var(--pink) 30%, var(--yellow) 30% 38%, var(--black) 38%);
+    }
+
+    .export-preview-square {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(to bottom, var(--pink) 28%, var(--yellow) 28% 35%, var(--black) 35%);
+    }
+
+    .export-preview-wide {
+      width: 64px;
+      height: 36px;
+      background: linear-gradient(to right, var(--pink) 35%, var(--yellow) 35% 40%, var(--black) 40%);
+    }
+
+    .export-format-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.95rem;
+      color: var(--white);
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+
+    .export-dims {
+      font-size: 0.5rem;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    .export-btns {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .export-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .export-btn:hover {
+      background: var(--purple);
+      color: var(--white);
+      border-color: var(--purple);
+    }
+
+    .export-btn:active { transform: scale(0.95); }
+
+    .export-btn.generating {
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    /* Hidden poster templates rendered off-screen */
+    .poster-offscreen {
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* ===== LOADING ===== */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--black);
+    }
+
+    .loading-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin: 0 4px;
+      animation: ldot 1.2s ease-in-out infinite;
+    }
+
+    .loading-dot:nth-child(1) { background: var(--pink); animation-delay: 0s; }
+    .loading-dot:nth-child(2) { background: var(--yellow); animation-delay: 0.2s; }
+    .loading-dot:nth-child(3) { background: var(--cyan); animation-delay: 0.4s; }
+
+    @keyframes ldot {
+      0%, 100% { transform: scale(0.4); opacity: 0.3; }
+      50% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Global SVG filter for gooey/liquid drip effect -->
+  <svg class="svg-filters" aria-hidden="true">
+    <defs>
+      <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+        <feColorMatrix in="blur" type="matrix"
+          values="1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 22 -8"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <div id="app">
+    <div class="loading">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
